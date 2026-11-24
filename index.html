@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kas UMKM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Kas UMKM</h1>
+    <p>Catat pemasukan dan pengeluaran usaha kecil.</p>
+  </header>
+
+  <main>
+    <section class="ringkasan">
+      <div class="kartu">
+        <span>Total Masuk</span>
+        <strong id="total-masuk">Rp0</strong>
+      </div>
+      <div class="kartu">
+        <span>Total Keluar</span>
+        <strong id="total-keluar">Rp0</strong>
+      </div>
+      <div class="kartu saldo">
+        <span>Saldo</span>
+        <strong id="saldo">Rp0</strong>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Tambah Transaksi</h2>
+      <form id="form-transaksi">
+        <label>
+          Tipe
+          <select id="tipe" required>
+            <option value="masuk">Pemasukan</option>
+            <option value="keluar">Pengeluaran</option>
+          </select>
+        </label>
+
+        <label>
+          Tanggal
+          <input type="date" id="tanggal" required>
+        </label>
+
+        <label>
+          Keterangan
+          <input type="text" id="keterangan" placeholder="Contoh: Penjualan hari ini" required>
+        </label>
+
+        <label>
+          Kategori
+          <select id="kategori" required>
+            <option value="Penjualan">Penjualan</option>
+            <option value="Belanja Stok">Belanja Stok</option>
+            <option value="Listrik">Listrik</option>
+            <option value="Gaji">Gaji</option>
+            <option value="Lain-lain">Lain-lain</option>
+          </select>
+        </label>
+
+        <label>
+          Jumlah (Rp)
+          <input type="number" id="jumlah" min="1" placeholder="50000" required>
+        </label>
+
+        <button type="submit">Simpan Transaksi</button>
+      </form>
+    </section>
+
+    <section class="daftar-section">
+      <h2>Daftar Transaksi</h2>
+      <ul id="daftar-transaksi"></ul>
+      <p id="kosong" class="kosong">Belum ada transaksi. Yuk tambah yang pertama.</p>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/idb@7/build/umd.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
