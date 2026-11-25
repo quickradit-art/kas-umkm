@@ -1,6 +1,7 @@
 const DB_NAME = "kas-umkm";
 const DB_VERSION = 1;
 let db;
+let myChart = null; // Variabel untuk menyimpan grafik
 
 // 1. Buka Database
 async function bukaDB() {
@@ -8,8 +9,7 @@ async function bukaDB() {
     upgrade(database) {
       if (!database.objectStoreNames.contains("transaksi")) {
         const store = database.createObjectStore("transaksi", {
-          keyPath: "id",
-          autoIncrement: true
+          keyPath: "id", autoIncrement: true
         });
         store.createIndex("tanggal", "tanggal");
         store.createIndex("tipe", "tipe");
@@ -23,7 +23,26 @@ function formatRupiah(angka) {
   return "Rp" + Number(angka).toLocaleString("id-ID");
 }
 
-// 3. Render Tampilan
+// 3. Navigasi Tab (Dashboard vs Kas)
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    // Hapus status active dari semua tombol & halaman
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    
+    // Tambahkan active ke yang diklik
+    e.target.classList.add('active');
+    const targetId = e.target.getAttribute('data-target');
+    document.getElementById(targetId).classList.add('active');
+
+    // Kalau buka dashboard, render ulang grafiknya
+    if (targetId === 'page-dashboard') {
+      renderGrafik();
+    }
+  });
+});
+
+// 4. Render Daftar Transaksi & Ringkasan
 async function render() {
   const semua = await db.getAll("transaksi");
   semua.sort((a, b) => {
@@ -41,7 +60,6 @@ async function render() {
     else totalKeluar += t.jumlah;
 
     const li = document.createElement("li");
-    li.className = t.tipe;
     li.style.alignItems = "center";
 
     const divTeks = document.createElement("div");
@@ -49,14 +67,11 @@ async function render() {
     divTeks.innerHTML = `<small>${t.tanggal}</small><br><strong>${t.keterangan}</strong> <br><small style="color:#6b7280">${t.kategori}</small>`;
 
     const divAksi = document.createElement("div");
-    divAksi.style.display = "flex";
-    divAksi.style.gap = "8px";
-    divAksi.style.alignItems = "center";
+    divAksi.style.display = "flex"; divAksi.style.gap = "8px"; divAksi.style.alignItems = "center";
 
     const strong = document.createElement("strong");
     strong.textContent = `${t.tipe === "masuk" ? "+" : "-"} ${formatRupiah(t.jumlah)}`;
-    strong.style.minWidth = "90px";
-    strong.style.textAlign = "right";
+    strong.style.minWidth = "90px"; strong.style.textAlign = "right";
     strong.style.color = t.tipe === "masuk" ? "#0a7d33" : "#c0392b";
 
     const btnEdit = document.createElement("button");
@@ -78,12 +93,65 @@ async function render() {
   document.getElementById("total-keluar").textContent = formatRupiah(totalKeluar);
   document.getElementById("saldo").textContent = formatRupiah(totalMasuk - totalKeluar);
   document.getElementById("kosong").style.display = semua.length ? "none" : "block";
+  
+  // Setiap kali data berubah, update grafiknya
+  renderGrafik(semua);
 }
 
-// 4. Handle Form Submit (Tambah & Edit)
+// 5. Render Grafik Pengeluaran (Chart.js)
+async function renderGrafik(dataTransaksi = null) {
+  // Kalau data belum dilempar, ambil dari DB
+  const semua = dataTransaksi || await db.getAll("transaksi");
+  
+  // Ambil hanya pengeluaran
+  const pengeluaran = semua.filter(t => t.tipe === "keluar");
+  
+  if (pengeluaran.length === 0) {
+    document.getElementById("grafik-pengeluaran").style.display = "none";
+    document.getElementById("pesan-grafik").style.display = "block";
+    if (myChart) { myChart.destroy(); myChart = null; }
+    return;
+  } else {
+    document.getElementById("grafik-pengeluaran").style.display = "block";
+    document.getElementById("pesan-grafik").style.display = "none";
+  }
+
+  // Hitung total per kategori
+  const kategoriMap = {};
+  pengeluaran.forEach(t => {
+    kategoriMap[t.kategori] = (kategoriMap[t.kategori] || 0) + t.jumlah;
+  });
+
+  const labels = Object.keys(kategoriMap);
+  const data = Object.values(kategoriMap);
+
+  // Hapus grafik lama jika ada
+  if (myChart) { myChart.destroy(); }
+
+  const ctx = document.getElementById('grafik-pengeluaran').getContext('2d');
+  myChart = new Chart(ctx, {
+    type: 'doughnut', // Jenis grafik: donat
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+
+// 6. Handle Form Submit (Tambah & Edit)
 document.getElementById("form-transaksi").addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const editId = document.getElementById("edit-id").value;
   const tipe = document.getElementById("tipe").value;
   const tanggal = document.getElementById("tanggal").value;
@@ -92,7 +160,6 @@ document.getElementById("form-transaksi").addEventListener("submit", async (e) =
   const jumlah = Number(document.getElementById("jumlah").value);
 
   if (!tanggal || !keterangan || !jumlah || jumlah <= 0) return;
-
   const data = { tipe, tanggal, keterangan, kategori, jumlah };
 
   if (editId) {
@@ -106,7 +173,7 @@ document.getElementById("form-transaksi").addEventListener("submit", async (e) =
   await render();
 });
 
-// 5. Fungsi Pendukung (Edit, Hapus, Reset)
+// 7. Fungsi Pendukung CRUD
 function siapkanEdit(t) {
   document.getElementById("edit-id").value = t.id;
   document.getElementById("tipe").value = t.tipe;
@@ -120,6 +187,8 @@ function siapkanEdit(t) {
   btnSubmit.style.background = "#f59e0b";
   document.getElementById("btn-batal").style.display = "block";
   
+  // Pindah ke tab Kas (jika sedang di dashboard)
+  document.querySelector('[data-target="page-kas"]').click();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -134,7 +203,6 @@ function resetForm() {
   document.getElementById("form-transaksi").reset();
   document.getElementById("edit-id").value = "";
   document.getElementById("tanggal").valueAsDate = new Date();
-  
   const btnSubmit = document.getElementById("btn-submit");
   btnSubmit.textContent = "Simpan Transaksi";
   btnSubmit.style.background = "#1f6feb";
@@ -143,13 +211,10 @@ function resetForm() {
 
 document.getElementById("btn-batal").addEventListener("click", resetForm);
 
-// 6. Fitur Backup & Restore
+// 8. Fitur Backup & Restore
 document.getElementById("btn-export").addEventListener("click", async () => {
   const semua = await db.getAll("transaksi");
-  if (semua.length === 0) {
-    alert("Belum ada data untuk di-backup.");
-    return;
-  }
+  if (semua.length === 0) { alert("Belum ada data untuk di-backup."); return; }
 
   const headers = ["Tanggal", "Tipe", "Kategori", "Keterangan", "Jumlah"];
   const barisData = semua.map(t => {
@@ -182,7 +247,7 @@ document.getElementById("file-import").addEventListener("change", (e) => {
     try {
       const text = event.target.result;
       const lines = text.split("\n").filter(line => line.trim() !== "");
-      lines.shift(); // Hapus header
+      lines.shift(); 
 
       let sukses = 0;
       for (const line of lines) {
@@ -211,13 +276,12 @@ document.getElementById("file-import").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
-// 7. Inisialisasi Awal & Minta Izin Penyimpanan Permanen
+// 9. Inisialisasi Awal
 (async function init() {
   await bukaDB();
   document.getElementById("tanggal").valueAsDate = new Date();
   await render();
 
-  // Minta izin browser agar tidak menghapus data otomatis
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().then(function(persistent) {
       if (persistent) console.log("Data dilindungi dari penghapusan otomatis.");
