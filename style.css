@@ -16,20 +16,45 @@ header {
   text-align: center;
 }
 
-header h1 {
-  margin: 0 0 6px;
+header h1 { margin: 0 0 6px; }
+header p { margin: 0; font-size: 14px; opacity: 0.9; }
+
+/* Navigasi Tab */
+.navbar {
+  display: flex;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
 }
 
-header p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
+.nav-btn {
+  flex: 1;
+  padding: 15px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 15px;
+  font-weight: bold;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+
+.nav-btn:hover { background: #f9fafb; }
+
+.nav-btn.active {
+  color: #1f6feb;
+  border-bottom-color: #1f6feb;
+}
+
+/* Sembunyikan/Tampilkan Halaman */
+.page-section { display: none; }
+.page-section.active { display: block; }
 
 main {
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 16px 20px;
 }
 
 .ringkasan {
@@ -46,23 +71,11 @@ main {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-.kartu span {
-  display: block;
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 6px;
-}
+.kartu span { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
+.kartu strong { font-size: 16px; }
+.saldo { background: #e8f0fe; }
 
-.kartu strong {
-  font-size: 16px;
-}
-
-.saldo {
-  background: #e8f0fe;
-}
-
-.form-section,
-.daftar-section {
+.form-section, .daftar-section {
   background: white;
   padding: 16px;
   border-radius: 10px;
@@ -70,21 +83,10 @@ main {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-h2 {
-  margin-top: 0;
-  font-size: 18px;
-}
+h2 { margin-top: 0; font-size: 18px; }
 
-form label {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-form input,
-form select,
-form button {
+form label { display: block; margin-bottom: 12px; font-size: 14px; font-weight: bold; }
+form input, form select, form button {
   width: 100%;
   margin-top: 6px;
   padding: 10px;
@@ -101,16 +103,9 @@ form button[type="submit"] {
   cursor: pointer;
 }
 
-form button[type="submit"]:hover {
-  background: #1557b0;
-}
+form button[type="submit"]:hover { background: #1557b0; }
 
-#daftar-transaksi {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+#daftar-transaksi { list-style: none; padding: 0; margin: 0; }
 #daftar-transaksi li {
   display: flex;
   justify-content: space-between;
@@ -120,28 +115,17 @@ form button[type="submit"]:hover {
   font-size: 14px;
 }
 
-.kosong {
-  color: #6b7280;
-  font-size: 14px;
-}
+.kosong { color: #6b7280; font-size: 14px; }
 
 .btn-aksi {
-  padding: 8px 12px;
-  font-size: 13px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
+  padding: 8px 12px; font-size: 13px; border: none;
+  border-radius: 6px; cursor: pointer; font-weight: bold; color: white;
 }
-
 .btn-hijau { background: #0a7d33; }
 .btn-hijau:hover { background: #086327; }
 .btn-biru { background: #1f6feb; }
 .btn-biru:hover { background: #1557b0; }
 
 @media (max-width: 480px) {
-  .ringkasan {
-    grid-template-columns: 1fr;
-  }
+  .ringkasan { grid-template-columns: 1fr; }
 }
