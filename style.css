@@ -93,7 +93,7 @@ form button {
   font-size: 14px;
 }
 
-form button {
+form button[type="submit"] {
   background: #1f6feb;
   color: white;
   border: none;
@@ -101,7 +101,7 @@ form button {
   cursor: pointer;
 }
 
-form button:hover {
+form button[type="submit"]:hover {
   background: #1557b0;
 }
 
@@ -120,18 +120,25 @@ form button:hover {
   font-size: 14px;
 }
 
-#daftar-transaksi li.masuk strong {
-  color: #0a7d33;
-}
-
-#daftar-transaksi li.keluar strong {
-  color: #c0392b;
-}
-
 .kosong {
   color: #6b7280;
   font-size: 14px;
 }
+
+.btn-aksi {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+}
+
+.btn-hijau { background: #0a7d33; }
+.btn-hijau:hover { background: #086327; }
+.btn-biru { background: #1f6feb; }
+.btn-biru:hover { background: #1557b0; }
 
 @media (max-width: 480px) {
   .ringkasan {
