@@ -3,92 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kas UMKM</title>
+  <title>Kas UMKM Pro</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>Kas UMKM</h1>
-    <p>Catat pemasukan dan pengeluaran usaha kecil.</p>
+    <h1>Kas UMKM Pro</h1>
+    <p>Sistem Pencatatan Usaha Terpadu</p>
   </header>
 
+  <!-- MENU NAVIGASI -->
+  <nav class="navbar">
+    <button class="nav-btn active" data-target="page-dashboard">🏠 Dashboard</button>
+    <button class="nav-btn" data-target="page-kas">💵 Buku Kas</button>
+  </nav>
+
   <main>
-    <section class="ringkasan">
-      <div class="kartu">
-        <span>Total Masuk</span>
-        <strong id="total-masuk">Rp0</strong>
+    <!-- ================= HALAMAN DASHBOARD ================= -->
+    <section id="page-dashboard" class="page-section active">
+      <div class="ringkasan">
+        <div class="kartu">
+          <span>Total Masuk</span>
+          <strong id="total-masuk">Rp0</strong>
+        </div>
+        <div class="kartu">
+          <span>Total Keluar</span>
+          <strong id="total-keluar">Rp0</strong>
+        </div>
+        <div class="kartu saldo">
+          <span>Saldo Bersih</span>
+          <strong id="saldo">Rp0</strong>
+        </div>
       </div>
-      <div class="kartu">
-        <span>Total Keluar</span>
-        <strong id="total-keluar">Rp0</strong>
-      </div>
-      <div class="kartu saldo">
-        <span>Saldo</span>
-        <strong id="saldo">Rp0</strong>
+
+      <div class="form-section">
+        <h2>Grafik Pengeluaran per Kategori</h2>
+        <div style="position: relative; height:300px; width:100%; display: flex; justify-content: center;">
+          <canvas id="grafik-pengeluaran"></canvas>
+        </div>
+        <p id="pesan-grafik" class="kosong" style="text-align: center; margin-top: 10px; display: none;">Belum ada data pengeluaran untuk ditampilkan.</p>
       </div>
     </section>
 
-    <section class="form-section">
-      <h2>Tambah / Edit Transaksi</h2>
-      <form id="form-transaksi">
-        <input type="hidden" id="edit-id">
-        
-        <label>
-          Tipe
-          <select id="tipe" required>
-            <option value="masuk">Pemasukan</option>
-            <option value="keluar">Pengeluaran</option>
-          </select>
-        </label>
+    <!-- ================= HALAMAN BUKU KAS ================= -->
+    <section id="page-kas" class="page-section">
+      <div class="form-section">
+        <h2>Tambah / Edit Transaksi</h2>
+        <form id="form-transaksi">
+          <input type="hidden" id="edit-id">
+          
+          <label>
+            Tipe
+            <select id="tipe" required>
+              <option value="masuk">Pemasukan</option>
+              <option value="keluar">Pengeluaran</option>
+            </select>
+          </label>
+          <label>
+            Tanggal
+            <input type="date" id="tanggal" required>
+          </label>
+          <label>
+            Keterangan
+            <input type="text" id="keterangan" placeholder="Contoh: Penjualan hari ini" required>
+          </label>
+          <label>
+            Kategori
+            <select id="kategori" required>
+              <option value="Penjualan">Penjualan</option>
+              <option value="Belanja Stok">Belanja Stok</option>
+              <option value="Listrik">Listrik</option>
+              <option value="Gaji">Gaji</option>
+              <option value="Lain-lain">Lain-lain</option>
+            </select>
+          </label>
+          <label>
+            Jumlah (Rp)
+            <input type="number" id="jumlah" min="1" placeholder="50000" required>
+          </label>
 
-        <label>
-          Tanggal
-          <input type="date" id="tanggal" required>
-        </label>
-
-        <label>
-          Keterangan
-          <input type="text" id="keterangan" placeholder="Contoh: Penjualan hari ini" required>
-        </label>
-
-        <label>
-          Kategori
-          <select id="kategori" required>
-            <option value="Penjualan">Penjualan</option>
-            <option value="Belanja Stok">Belanja Stok</option>
-            <option value="Listrik">Listrik</option>
-            <option value="Gaji">Gaji</option>
-            <option value="Lain-lain">Lain-lain</option>
-          </select>
-        </label>
-
-        <label>
-          Jumlah (Rp)
-          <input type="number" id="jumlah" min="1" placeholder="50000" required>
-        </label>
-
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-          <button type="submit" id="btn-submit" style="flex: 1;">Simpan Transaksi</button>
-          <button type="button" id="btn-batal" style="flex: 1; background: #6b7280; display: none;">Batal Edit</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="daftar-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-        <h2 style="margin: 0;">Daftar Transaksi</h2>
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-export" class="btn-aksi btn-hijau">⬇️ Backup (CSV)</button>
-          <button id="btn-import" class="btn-aksi btn-biru">⬆️ Restore (CSV)</button>
-          <input type="file" id="file-import" accept=".csv" style="display: none;">
-        </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="submit" id="btn-submit" style="flex: 1;">Simpan Transaksi</button>
+            <button type="button" id="btn-batal" style="flex: 1; background: #6b7280; display: none;">Batal Edit</button>
+          </div>
+        </form>
       </div>
-      <ul id="daftar-transaksi"></ul>
-      <p id="kosong" class="kosong">Belum ada transaksi. Yuk tambah yang pertama.</p>
+
+      <div class="daftar-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <h2 style="margin: 0;">Daftar Transaksi</h2>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-export" class="btn-aksi btn-hijau">⬇️ Backup (CSV)</button>
+            <button id="btn-import" class="btn-aksi btn-biru">⬆️ Restore (CSV)</button>
+            <input type="file" id="file-import" accept=".csv" style="display: none;">
+          </div>
+        </div>
+        <ul id="daftar-transaksi"></ul>
+        <p id="kosong" class="kosong">Belum ada transaksi. Yuk tambah yang pertama.</p>
+      </div>
     </section>
   </main>
 
+  <!-- Panggil Library -->
   <script src="https://unpkg.com/idb@7/build/umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
