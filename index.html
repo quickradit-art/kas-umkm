@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kas UMKM Pro</title>
+  
+  <!-- PWA TAGS -->
+  <meta name="theme-color" content="#1f6feb">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Ikon untuk iOS (Apple) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjM4IiBmaWxsPSIjMWY2ZmViIi8+PHBhdGggZD0iTTUwIDcwaDkydjUySDUweiIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjEwIiBmaWxsPSIjMWY2ZmViIi8+PC9zdmc+">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,7 +55,6 @@
         <p id="pesan-grafik" class="kosong" style="text-align: center; margin-top: 10px; display: none;">Belum ada data pengeluaran.</p>
       </div>
 
-      <!-- FITUR BACKUP PINDAH KE SINI -->
       <div class="form-section">
         <h2>Manajemen Data (Backup & Restore)</h2>
         <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">Gunakan fitur ini untuk menyimpan cadangan data ke file Excel/CSV atau memindahkannya ke HP lain.</p>
@@ -64,7 +72,6 @@
         <h2>Form Transaksi</h2>
         <form id="form-transaksi">
           <input type="hidden" id="edit-id">
-          
           <label>
             Tipe
             <select id="tipe" required>
@@ -94,7 +101,6 @@
             Jumlah (Rp)
             <input type="number" id="jumlah" min="1" placeholder="50000" required>
           </label>
-
           <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button type="submit" id="btn-submit" style="flex: 1;">Simpan Transaksi</button>
             <button type="button" id="btn-batal" style="flex: 1; background: #6b7280; display: none;">Batal Edit</button>
@@ -155,7 +161,6 @@
 
         <h3 style="font-size: 16px; margin-bottom: 10px;">Rincian per Kategori</h3>
         <ul id="lap-kategori-list" style="list-style: none; padding: 0; margin: 0;">
-          <!-- Diisi oleh JS -->
         </ul>
         <p id="lap-kosong" class="kosong" style="display: none;">Tidak ada transaksi di bulan ini.</p>
       </div>
@@ -165,6 +170,18 @@
   <!-- Panggil Library -->
   <script src="https://unpkg.com/idb@7/build/umd.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Daftarkan Service Worker untuk PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('Service Worker berhasil didaftarkan.'))
+          .catch(err => console.log('Service Worker gagal: ', err));
+      });
+    }
+  </script>
+  
   <script src="app.js"></script>
 </body>
 </html>
