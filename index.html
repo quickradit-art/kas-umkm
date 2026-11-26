@@ -7,15 +7,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
+  <header class="no-print">
     <h1>Kas UMKM Pro</h1>
     <p>Sistem Pencatatan Usaha Terpadu</p>
   </header>
 
   <!-- MENU NAVIGASI -->
-  <nav class="navbar">
+  <nav class="navbar no-print">
     <button class="nav-btn active" data-target="page-dashboard">🏠 Dashboard</button>
-    <button class="nav-btn" data-target="page-kas">💵 Buku Kas</button>
+    <button class="nav-btn" data-target="page-input">💵 Input Kas</button>
+    <button class="nav-btn" data-target="page-riwayat">📜 Riwayat</button>
+    <button class="nav-btn" data-target="page-laporan">📊 Laporan</button>
   </nav>
 
   <main>
@@ -23,11 +25,11 @@
     <section id="page-dashboard" class="page-section active">
       <div class="ringkasan">
         <div class="kartu">
-          <span>Total Masuk</span>
+          <span>Total Masuk (All)</span>
           <strong id="total-masuk">Rp0</strong>
         </div>
         <div class="kartu">
-          <span>Total Keluar</span>
+          <span>Total Keluar (All)</span>
           <strong id="total-keluar">Rp0</strong>
         </div>
         <div class="kartu saldo">
@@ -41,14 +43,25 @@
         <div style="position: relative; height:300px; width:100%; display: flex; justify-content: center;">
           <canvas id="grafik-pengeluaran"></canvas>
         </div>
-        <p id="pesan-grafik" class="kosong" style="text-align: center; margin-top: 10px; display: none;">Belum ada data pengeluaran untuk ditampilkan.</p>
+        <p id="pesan-grafik" class="kosong" style="text-align: center; margin-top: 10px; display: none;">Belum ada data pengeluaran.</p>
+      </div>
+
+      <!-- FITUR BACKUP PINDAH KE SINI -->
+      <div class="form-section">
+        <h2>Manajemen Data (Backup & Restore)</h2>
+        <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">Gunakan fitur ini untuk menyimpan cadangan data ke file Excel/CSV atau memindahkannya ke HP lain.</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="btn-export" class="btn-aksi btn-hijau" style="flex: 1;">⬇️ Backup Data (CSV)</button>
+          <button id="btn-import" class="btn-aksi btn-biru" style="flex: 1;">⬆️ Restore Data (CSV)</button>
+          <input type="file" id="file-import" accept=".csv" style="display: none;">
+        </div>
       </div>
     </section>
 
-    <!-- ================= HALAMAN BUKU KAS ================= -->
-    <section id="page-kas" class="page-section">
+    <!-- ================= HALAMAN INPUT KAS ================= -->
+    <section id="page-input" class="page-section">
       <div class="form-section">
-        <h2>Tambah / Edit Transaksi</h2>
+        <h2>Form Transaksi</h2>
         <form id="form-transaksi">
           <input type="hidden" id="edit-id">
           
@@ -88,18 +101,63 @@
           </div>
         </form>
       </div>
+    </section>
 
+    <!-- ================= HALAMAN RIWAYAT ================= -->
+    <section id="page-riwayat" class="page-section">
       <div class="daftar-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-          <h2 style="margin: 0;">Daftar Transaksi</h2>
-          <div style="display: flex; gap: 8px;">
-            <button id="btn-export" class="btn-aksi btn-hijau">⬇️ Backup (CSV)</button>
-            <button id="btn-import" class="btn-aksi btn-biru">⬆️ Restore (CSV)</button>
-            <input type="file" id="file-import" accept=".csv" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+          <h2 style="margin: 0;">Riwayat Transaksi</h2>
+        </div>
+        
+        <label style="margin-bottom: 15px; display: block; font-weight: bold; font-size: 14px;">
+          Filter Bulan:
+          <input type="month" id="filter-riwayat" style="padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; width: 100%; margin-top: 5px;">
+        </label>
+
+        <ul id="daftar-transaksi"></ul>
+        <p id="kosong" class="kosong" style="display: none;">Tidak ada transaksi di bulan ini.</p>
+      </div>
+    </section>
+
+    <!-- ================= HALAMAN LAPORAN ================= -->
+    <section id="page-laporan" class="page-section print-area">
+      <div class="form-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+          <h2 style="margin: 0;">Laporan Bulanan</h2>
+          <button onclick="window.print()" class="btn-aksi btn-biru no-print">🖨️ Cetak PDF</button>
+        </div>
+
+        <label class="no-print" style="margin-bottom: 20px; display: block; font-weight: bold; font-size: 14px;">
+          Pilih Bulan:
+          <input type="month" id="filter-bulan" style="padding: 10px; border-radius: 8px; border: 1px solid #d1d5db; width: 100%; margin-top: 6px;">
+        </label>
+
+        <div id="header-cetak" style="display: none; margin-bottom: 20px; text-align: center;">
+          <h3 style="margin: 0;">Laporan Keuangan Kas UMKM</h3>
+          <p id="teks-bulan-cetak" style="margin: 5px 0 0; color: #555;">Bulan: -</p>
+        </div>
+
+        <div class="ringkasan" style="grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px;">
+          <div class="kartu" style="display: flex; justify-content: space-between;">
+            <span>Pemasukan Bulan Ini</span>
+            <strong id="lap-masuk" style="color: #0a7d33;">Rp0</strong>
+          </div>
+          <div class="kartu" style="display: flex; justify-content: space-between;">
+            <span>Pengeluaran Bulan Ini</span>
+            <strong id="lap-keluar" style="color: #c0392b;">Rp0</strong>
+          </div>
+          <div class="kartu saldo" style="display: flex; justify-content: space-between;">
+            <span>Saldo Bulan Ini</span>
+            <strong id="lap-saldo">Rp0</strong>
           </div>
         </div>
-        <ul id="daftar-transaksi"></ul>
-        <p id="kosong" class="kosong">Belum ada transaksi. Yuk tambah yang pertama.</p>
+
+        <h3 style="font-size: 16px; margin-bottom: 10px;">Rincian per Kategori</h3>
+        <ul id="lap-kategori-list" style="list-style: none; padding: 0; margin: 0;">
+          <!-- Diisi oleh JS -->
+        </ul>
+        <p id="lap-kosong" class="kosong" style="display: none;">Tidak ada transaksi di bulan ini.</p>
       </div>
     </section>
   </main>
