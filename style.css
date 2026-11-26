@@ -1,131 +1,55 @@
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f7fb;
-  color: #1f2933;
-}
-
-header {
-  padding: 20px;
-  background: #1f6feb;
-  color: white;
-  text-align: center;
-}
-
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fb; color: #1f2933; }
+header { padding: 20px; background: #1f6feb; color: white; text-align: center; }
 header h1 { margin: 0 0 6px; }
 header p { margin: 0; font-size: 14px; opacity: 0.9; }
 
-/* Navigasi Tab */
-.navbar {
-  display: flex;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-}
-
-.nav-btn {
-  flex: 1;
-  padding: 15px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  font-size: 15px;
-  font-weight: bold;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
+.navbar { display: flex; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; }
+.nav-btn { flex: 1; padding: 15px 10px; background: none; border: none; border-bottom: 3px solid transparent; font-size: 14px; font-weight: bold; color: #6b7280; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
 .nav-btn:hover { background: #f9fafb; }
+.nav-btn.active { color: #1f6feb; border-bottom-color: #1f6feb; }
 
-.nav-btn.active {
-  color: #1f6feb;
-  border-bottom-color: #1f6feb;
-}
-
-/* Sembunyikan/Tampilkan Halaman */
 .page-section { display: none; }
 .page-section.active { display: block; }
 
-main {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 0 16px 20px;
-}
-
-.ringkasan {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.kartu {
-  background: white;
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
+main { max-width: 640px; margin: 0 auto; padding: 0 16px 20px; }
+.ringkasan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.kartu { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .kartu span { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; }
 .kartu strong { font-size: 16px; }
 .saldo { background: #e8f0fe; }
 
-.form-section, .daftar-section {
-  background: white;
-  padding: 16px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
+.form-section, .daftar-section { background: white; padding: 16px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 h2 { margin-top: 0; font-size: 18px; }
 
 form label { display: block; margin-bottom: 12px; font-size: 14px; font-weight: bold; }
-form input, form select, form button {
-  width: 100%;
-  margin-top: 6px;
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-form button[type="submit"] {
-  background: #1f6feb;
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
+form input, form select, form button { width: 100%; margin-top: 6px; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+form button[type="submit"] { background: #1f6feb; color: white; border: none; font-weight: bold; cursor: pointer; }
 form button[type="submit"]:hover { background: #1557b0; }
 
-#daftar-transaksi { list-style: none; padding: 0; margin: 0; }
-#daftar-transaksi li {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #eef1f5;
-  font-size: 14px;
-}
+#daftar-transaksi, #lap-kategori-list { list-style: none; padding: 0; margin: 0; }
+#daftar-transaksi li, #lap-kategori-list li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eef1f5; font-size: 14px; }
 
 .kosong { color: #6b7280; font-size: 14px; }
-
-.btn-aksi {
-  padding: 8px 12px; font-size: 13px; border: none;
-  border-radius: 6px; cursor: pointer; font-weight: bold; color: white;
-}
+.btn-aksi { padding: 10px 15px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; text-align: center; }
 .btn-hijau { background: #0a7d33; }
 .btn-hijau:hover { background: #086327; }
 .btn-biru { background: #1f6feb; }
 .btn-biru:hover { background: #1557b0; }
 
+/* Gaya Khusus Cetak (Print/PDF) */
+@media print {
+  .no-print, header, .navbar, .btn-aksi, #filter-bulan, label[for="filter-bulan"] { display: none !important; }
+  body { background: white; }
+  main { max-width: 100%; padding: 0; }
+  .page-section { display: none; }
+  .print-area { display: block !important; }
+  .form-section { box-shadow: none; padding: 0; }
+  .kartu { border: 1px solid #ccc; box-shadow: none; }
+  #header-cetak { display: block !important; }
+}
+
 @media (max-width: 480px) {
   .ringkasan { grid-template-columns: 1fr; }
+  .nav-btn { font-size: 12px; padding: 15px 5px; }
 }
