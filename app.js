@@ -1,16 +1,13 @@
 const DB_NAME = "kas-umkm";
 const DB_VERSION = 1;
 let db;
-let myChart = null; // Variabel untuk menyimpan grafik
+let myChart = null; 
 
-// 1. Buka Database
 async function bukaDB() {
   db = await idb.openDB(DB_NAME, DB_VERSION, {
     upgrade(database) {
       if (!database.objectStoreNames.contains("transaksi")) {
-        const store = database.createObjectStore("transaksi", {
-          keyPath: "id", autoIncrement: true
-        });
+        const store = database.createObjectStore("transaksi", { keyPath: "id", autoIncrement: true });
         store.createIndex("tanggal", "tanggal");
         store.createIndex("tipe", "tipe");
       }
@@ -18,47 +15,98 @@ async function bukaDB() {
   });
 }
 
-// 2. Format Rupiah
 function formatRupiah(angka) {
   return "Rp" + Number(angka).toLocaleString("id-ID");
 }
 
-// 3. Navigasi Tab (Dashboard vs Kas)
+// Navigasi Tab
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
-    // Hapus status active dari semua tombol & halaman
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
     
-    // Tambahkan active ke yang diklik
     e.target.classList.add('active');
     const targetId = e.target.getAttribute('data-target');
     document.getElementById(targetId).classList.add('active');
 
-    // Kalau buka dashboard, render ulang grafiknya
-    if (targetId === 'page-dashboard') {
-      renderGrafik();
-    }
+    // Render ulang sesuai halaman
+    if (targetId === 'page-dashboard') renderDashboard();
+    if (targetId === 'page-riwayat') renderRiwayat();
+    if (targetId === 'page-laporan') renderLaporan();
   });
 });
 
-// 4. Render Daftar Transaksi & Ringkasan
-async function render() {
+// Render Dashboard (Total & Grafik)
+async function renderDashboard() {
   const semua = await db.getAll("transaksi");
-  semua.sort((a, b) => {
+  
+  let totalMasuk = 0, totalKeluar = 0;
+  semua.forEach(t => {
+    if (t.tipe === "masuk") totalMasuk += t.jumlah;
+    else totalKeluar += t.jumlah;
+  });
+
+  document.getElementById("total-masuk").textContent = formatRupiah(totalMasuk);
+  document.getElementById("total-keluar").textContent = formatRupiah(totalKeluar);
+  document.getElementById("saldo").textContent = formatRupiah(totalMasuk - totalKeluar);
+  
+  renderGrafik(semua);
+}
+
+// Render Grafik
+async function renderGrafik(semua) {
+  const pengeluaran = semua.filter(t => t.tipe === "keluar");
+  
+  if (pengeluaran.length === 0) {
+    document.getElementById("grafik-pengeluaran").style.display = "none";
+    document.getElementById("pesan-grafik").style.display = "block";
+    if (myChart) { myChart.destroy(); myChart = null; }
+    return;
+  } else {
+    document.getElementById("grafik-pengeluaran").style.display = "block";
+    document.getElementById("pesan-grafik").style.display = "none";
+  }
+
+  const kategoriMap = {};
+  pengeluaran.forEach(t => { kategoriMap[t.kategori] = (kategoriMap[t.kategori] || 0) + t.jumlah; });
+
+  if (myChart) { myChart.destroy(); }
+  const ctx = document.getElementById('grafik-pengeluaran').getContext('2d');
+  myChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(kategoriMap),
+      datasets: [{
+        data: Object.values(kategoriMap),
+        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'],
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+// Render Riwayat (Dengan Filter)
+async function renderRiwayat() {
+  const filterBulan = document.getElementById("filter-riwayat").value;
+  const semua = await db.getAll("transaksi");
+  
+  // Filter berdasarkan bulan (jika ada)
+  let dataTampil = semua;
+  if (filterBulan) {
+    dataTampil = semua.filter(t => t.tanggal.startsWith(filterBulan));
+  }
+
+  // Urutkan dari yang terbaru
+  dataTampil.sort((a, b) => {
     if (a.tanggal !== b.tanggal) return b.tanggal.localeCompare(a.tanggal);
     return b.id - a.id;
   });
 
-  let totalMasuk = 0;
-  let totalKeluar = 0;
   const ul = document.getElementById("daftar-transaksi");
   ul.innerHTML = "";
 
-  semua.forEach((t) => {
-    if (t.tipe === "masuk") totalMasuk += t.jumlah;
-    else totalKeluar += t.jumlah;
-
+  dataTampil.forEach((t) => {
     const li = document.createElement("li");
     li.style.alignItems = "center";
 
@@ -75,13 +123,11 @@ async function render() {
     strong.style.color = t.tipe === "masuk" ? "#0a7d33" : "#c0392b";
 
     const btnEdit = document.createElement("button");
-    btnEdit.textContent = "✏️";
-    btnEdit.style.cssText = "background:none; border:none; cursor:pointer; font-size:16px; padding:4px;";
+    btnEdit.textContent = "✏️"; btnEdit.style.cssText = "background:none; border:none; cursor:pointer; font-size:16px; padding:4px;";
     btnEdit.onclick = () => siapkanEdit(t);
 
     const btnHapus = document.createElement("button");
-    btnHapus.textContent = "🗑️";
-    btnHapus.style.cssText = "background:none; border:none; cursor:pointer; font-size:16px; padding:4px;";
+    btnHapus.textContent = "🗑️"; btnHapus.style.cssText = "background:none; border:none; cursor:pointer; font-size:16px; padding:4px;";
     btnHapus.onclick = () => hapusTransaksi(t.id);
 
     divAksi.append(strong, btnEdit, btnHapus);
@@ -89,67 +135,57 @@ async function render() {
     ul.appendChild(li);
   });
 
-  document.getElementById("total-masuk").textContent = formatRupiah(totalMasuk);
-  document.getElementById("total-keluar").textContent = formatRupiah(totalKeluar);
-  document.getElementById("saldo").textContent = formatRupiah(totalMasuk - totalKeluar);
-  document.getElementById("kosong").style.display = semua.length ? "none" : "block";
-  
-  // Setiap kali data berubah, update grafiknya
-  renderGrafik(semua);
+  document.getElementById("kosong").style.display = dataTampil.length ? "none" : "block";
 }
 
-// 5. Render Grafik Pengeluaran (Chart.js)
-async function renderGrafik(dataTransaksi = null) {
-  // Kalau data belum dilempar, ambil dari DB
-  const semua = dataTransaksi || await db.getAll("transaksi");
-  
-  // Ambil hanya pengeluaran
-  const pengeluaran = semua.filter(t => t.tipe === "keluar");
-  
-  if (pengeluaran.length === 0) {
-    document.getElementById("grafik-pengeluaran").style.display = "none";
-    document.getElementById("pesan-grafik").style.display = "block";
-    if (myChart) { myChart.destroy(); myChart = null; }
-    return;
-  } else {
-    document.getElementById("grafik-pengeluaran").style.display = "block";
-    document.getElementById("pesan-grafik").style.display = "none";
-  }
+// Render Laporan Bulanan
+async function renderLaporan() {
+  const filterBulan = document.getElementById("filter-bulan").value;
+  if (!filterBulan) return;
 
-  // Hitung total per kategori
+  // Update teks untuk cetak
+  const dateObj = new Date(filterBulan + "-01");
+  const namaBulan = dateObj.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+  document.getElementById("teks-bulan-cetak").textContent = `Bulan: ${namaBulan}`;
+
+  const semua = await db.getAll("transaksi");
+  const dataBulanIni = semua.filter(t => t.tanggal.startsWith(filterBulan));
+
+  let masuk = 0, keluar = 0;
   const kategoriMap = {};
-  pengeluaran.forEach(t => {
-    kategoriMap[t.kategori] = (kategoriMap[t.kategori] || 0) + t.jumlah;
+
+  dataBulanIni.forEach(t => {
+    if (t.tipe === "masuk") masuk += t.jumlah;
+    else keluar += t.jumlah;
+
+    const key = `${t.tipe === 'masuk' ? 'Pemasukan' : 'Pengeluaran'} - ${t.kategori}`;
+    kategoriMap[key] = (kategoriMap[key] || 0) + t.jumlah;
   });
 
-  const labels = Object.keys(kategoriMap);
-  const data = Object.values(kategoriMap);
+  document.getElementById("lap-masuk").textContent = formatRupiah(masuk);
+  document.getElementById("lap-keluar").textContent = formatRupiah(keluar);
+  document.getElementById("lap-saldo").textContent = formatRupiah(masuk - keluar);
 
-  // Hapus grafik lama jika ada
-  if (myChart) { myChart.destroy(); }
+  const ul = document.getElementById("lap-kategori-list");
+  ul.innerHTML = "";
 
-  const ctx = document.getElementById('grafik-pengeluaran').getContext('2d');
-  myChart = new Chart(ctx, {
-    type: 'doughnut', // Jenis grafik: donat
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
+  if (Object.keys(kategoriMap).length === 0) {
+    document.getElementById("lap-kosong").style.display = "block";
+  } else {
+    document.getElementById("lap-kosong").style.display = "none";
+    for (const [kategori, jumlah] of Object.entries(kategoriMap)) {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${kategori}</span> <strong>${formatRupiah(jumlah)}</strong>`;
+      ul.appendChild(li);
     }
-  });
+  }
 }
 
-// 6. Handle Form Submit (Tambah & Edit)
+// Event Listener Filter
+document.getElementById("filter-riwayat").addEventListener("change", renderRiwayat);
+document.getElementById("filter-bulan").addEventListener("change", renderLaporan);
+
+// Handle Form Submit
 document.getElementById("form-transaksi").addEventListener("submit", async (e) => {
   e.preventDefault();
   const editId = document.getElementById("edit-id").value;
@@ -170,10 +206,11 @@ document.getElementById("form-transaksi").addEventListener("submit", async (e) =
   }
 
   resetForm();
-  await render();
+  alert("Data berhasil disimpan!");
+  // Pindah ke tab riwayat setelah simpan
+  document.querySelector('[data-target="page-riwayat"]').click();
 });
 
-// 7. Fungsi Pendukung CRUD
 function siapkanEdit(t) {
   document.getElementById("edit-id").value = t.id;
   document.getElementById("tipe").value = t.tipe;
@@ -187,15 +224,14 @@ function siapkanEdit(t) {
   btnSubmit.style.background = "#f59e0b";
   document.getElementById("btn-batal").style.display = "block";
   
-  // Pindah ke tab Kas (jika sedang di dashboard)
-  document.querySelector('[data-target="page-kas"]').click();
+  document.querySelector('[data-target="page-input"]').click();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function hapusTransaksi(id) {
   if (confirm("Yakin ingin menghapus transaksi ini?")) {
     await db.delete("transaksi", id);
-    await render();
+    await renderRiwayat();
   }
 }
 
@@ -211,7 +247,7 @@ function resetForm() {
 
 document.getElementById("btn-batal").addEventListener("click", resetForm);
 
-// 8. Fitur Backup & Restore
+// Fitur Backup & Restore
 document.getElementById("btn-export").addEventListener("click", async () => {
   const semua = await db.getAll("transaksi");
   if (semua.length === 0) { alert("Belum ada data untuk di-backup."); return; }
@@ -266,7 +302,8 @@ document.getElementById("file-import").addEventListener("change", (e) => {
         }
       }
       alert(`Berhasil me-restore ${sukses} data transaksi.`);
-      await render();
+      renderDashboard();
+      renderRiwayat();
       e.target.value = "";
     } catch (error) {
       alert("Gagal me-restore data. Pastikan format file CSV sesuai.");
@@ -276,16 +313,24 @@ document.getElementById("file-import").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
-// 9. Inisialisasi Awal
+// Inisialisasi Awal
 (async function init() {
   await bukaDB();
-  document.getElementById("tanggal").valueAsDate = new Date();
-  await render();
+  
+  const now = new Date();
+  const bulanSekarang = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  
+  document.getElementById("tanggal").valueAsDate = now;
+  document.getElementById("filter-riwayat").value = bulanSekarang;
+  document.getElementById("filter-bulan").value = bulanSekarang;
+
+  // Tampilkan data awal di dashboard
+  await renderDashboard();
 
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().then(function(persistent) {
-      if (persistent) console.log("Data dilindungi dari penghapusan otomatis.");
-      else console.log("Browser mengabaikan permintaan izin penyimpanan.");
+      if (persistent) console.log("Data dilindungi.");
     });
   }
 })();
+ 
